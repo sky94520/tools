@@ -54,7 +54,7 @@ target=${filename%.*}
 suffix=${filename##*.}
 
 COMPILE=gcc
-if [ ${suffix} = cpp ]; then
+if [ "${suffix}" = "cpp" ]; then
 	COMPILE=g++
 fi
 
