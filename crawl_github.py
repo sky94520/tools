@@ -10,11 +10,16 @@ desc: 按层级爬取github链接
 import requests
 from pyquery import PyQuery as pq
 from urllib.parse import urljoin
+import threading
 from multiprocessing.pool import Pool
 import os
 import logging
 
 import log
+
+
+# 加锁，避免创建文件夹出错
+lock = threading.Lock()
 
 
 def get_items_from_url(url):
@@ -85,13 +90,11 @@ def start_download(start_url, base_dir):
                 groups.append(item)
     print('parse data success!!!')
 
-    for d in groups:
-        download_file(d)
     # 多线程下载
-    # pool = Pool()
-    # pool.map(download_file, groups)
-    # pool.close()
-    # pool.join()
+    pool = Pool()
+    pool.map(download_file, groups)
+    pool.close()
+    pool.join()
 
 
 def get_path_from_url(url, base_dir):
@@ -116,9 +119,14 @@ def download_file(dic):
     name, url, base_dir = dic["name"], dic["url"], dic["base_dir"]
     # 保证文件夹存在
     path = get_path_from_url(url, base_dir)
+
     if not os.path.exists(path):
-        print("尝试创建目录", path)
-        os.makedirs(path)
+        lock.acquire()
+        try:
+            print("尝试创建目录", path)
+            os.makedirs(path)
+        finally:
+            lock.release()
 
     print('Ready download %s' % name)
     # 开始下载
@@ -135,7 +143,8 @@ def download_file(dic):
     except requests.ConnectionError:
         logging.warning("Failed download:%s" % url)
 
+
 if __name__ == '__main__':
-    start_url = 'https://github.com/greyli/albumy/tree/master/albumy/static'
-    base_dir = "static"
+    start_url = 'https://github.com/sky94520/old-code/tree/master/cocos2dx/Fishing/Resources'
+    base_dir = "Resources"
     start_download(start_url, base_dir)
