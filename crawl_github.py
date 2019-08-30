@@ -119,12 +119,13 @@ def download_file(dic):
     name, url, base_dir = dic["name"], dic["url"], dic["base_dir"]
     # 保证文件夹存在
     path = get_path_from_url(url, base_dir)
-
     if not os.path.exists(path):
         lock.acquire()
         try:
             print("尝试创建目录", path)
             os.makedirs(path)
+        except FileExistsError:
+            print("目录已经存在" % path)
         finally:
             lock.release()
 
@@ -145,6 +146,6 @@ def download_file(dic):
 
 
 if __name__ == '__main__':
-    start_url = 'https://github.com/sky94520/old-code/tree/master/cocos2dx/Fishing/Resources'
-    base_dir = "Resources"
+    start_url = 'https://github.com/pbharrin/machinelearninginaction'
+    base_dir = 'pbharrin'
     start_download(start_url, base_dir)
